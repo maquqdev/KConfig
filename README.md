@@ -2,9 +2,9 @@
 
 **Type-safe, annotation-driven YAML configuration for Kotlin.**
 
-[![Build](https://img.shields.io/github/actions/workflow/status/maquq/kconfig/build.yml?branch=main&style=flat-square)](https://github.com/maquq/kconfig/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/maquqdev/KConfig/ci.yml?branch=main&style=flat-square)](https://github.com/maquqdev/KConfig/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg?style=flat-square)](https://github.com/maquq/kconfig/releases)
+[![JitPack](https://jitpack.io/v/maquqdev/KConfig.svg?style=flat-square)](https://jitpack.io/#maquqdev/KConfig)
 
 ---
 
@@ -59,13 +59,14 @@ KConfig maps Kotlin data classes to YAML files with zero boilerplate. Define you
 ```kotlin
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 }
 
 dependencies {
-    implementation("club.skidware:kconfig-core:1.0.0")
+    implementation("com.github.maquqdev.KConfig:kconfig-core:v1.0.0")
 
     // Optional: Bukkit type serializers
-    implementation("club.skidware:kconfig-bukkit:1.0.0")
+    implementation("com.github.maquqdev.KConfig:kconfig-bukkit:v1.0.0")
 }
 ```
 
@@ -75,15 +76,20 @@ dependencies {
 # gradle/libs.versions.toml
 
 [versions]
-kconfig = "1.0.0"
+kconfig = "v1.0.0"
 
 [libraries]
-kconfig-core = { module = "club.skidware:kconfig-core", version.ref = "kconfig" }
-kconfig-bukkit = { module = "club.skidware:kconfig-bukkit", version.ref = "kconfig" }
+kconfig-core = { module = "com.github.maquqdev.KConfig:kconfig-core", version.ref = "kconfig" }
+kconfig-bukkit = { module = "com.github.maquqdev.KConfig:kconfig-bukkit", version.ref = "kconfig" }
 ```
 
 ```kotlin
 // build.gradle.kts
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+
 dependencies {
     implementation(libs.kconfig.core)
     implementation(libs.kconfig.bukkit) // optional
@@ -93,17 +99,24 @@ dependencies {
 ### Maven
 
 ```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
 <dependency>
-    <groupId>club.skidware</groupId>
+    <groupId>com.github.maquqdev.KConfig</groupId>
     <artifactId>kconfig-core</artifactId>
-    <version>1.0.0</version>
+    <version>v1.0.0</version>
 </dependency>
 
 <!-- Optional: Bukkit type serializers -->
 <dependency>
-    <groupId>club.skidware</groupId>
+    <groupId>com.github.maquqdev.KConfig</groupId>
     <artifactId>kconfig-bukkit</artifactId>
-    <version>1.0.0</version>
+    <version>v1.0.0</version>
 </dependency>
 ```
 
@@ -832,12 +845,12 @@ override fun onEnable() {
 
 ### Supported Types
 
-| Type | YAML Format | Notes |
-|---|---|---|
-| `Location` | `{world, x, y, z, pitch?, yaw?}` | `pitch` and `yaw` omitted when zero |
-| `Vector` | `{x, y, z}` | Double-precision coordinates |
-| `Color` | `{red, green, blue}` | Integer values 0-255 |
-| `ItemStack` | Bukkit standard serialization | Delegates to `ItemStack.serialize()` |
+| Type | YAML Format                                 | Notes                               |
+|---|---------------------------------------------|-------------------------------------|
+| `Location` | `{world, x, y, z, pitch?, yaw?}`            | `pitch` and `yaw` omitted when zero |
+| `Vector` | `{x, y, z}`                                 | Double-precision coordinates        |
+| `Color` | `{red, green, blue}`                        | Integer values 0-255                |
+| `ItemStack` | {displayName, lore, custom-model-data etc.) | None -.-                            |
 
 ### YAML Examples
 
@@ -917,7 +930,6 @@ KConfig is organized into three modules:
 |---|---|---|
 | `kconfig-core` | `club.skidware:kconfig-core` | Core library. YAML loading, saving, validation, annotations, migrations, file watching, `ConfigRef`. No external dependencies beyond SnakeYAML, kotlin-reflect, and SLF4J. |
 | `kconfig-bukkit` | `club.skidware:kconfig-bukkit` | Optional Bukkit integration. Serializers for `Location`, `Vector`, `Color`, and `ItemStack`. Depends on `kconfig-core` and the Bukkit API. |
-| `kconfig-example` | -- | Example project demonstrating configuration schemas, migrations, and custom serializers. Not published. |
 
 ---
 

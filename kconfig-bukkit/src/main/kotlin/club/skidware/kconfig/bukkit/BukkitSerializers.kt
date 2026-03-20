@@ -13,6 +13,7 @@ import io.papermc.paper.registry.RegistryKey
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
+import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Vector
 
@@ -260,7 +261,7 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         return item
     }
 
-    private fun serializeTextFields(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeTextFields(meta: ItemMeta, map: MutableMap<String, Any?>) {
         val displayName = meta.displayName()
         if (displayName != null) {
             map["displayName"] = this.miniMessage.serialize(displayName)
@@ -272,14 +273,14 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         }
     }
 
-    private fun serializeGameplayFields(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeGameplayFields(meta: ItemMeta, map: MutableMap<String, Any?>) {
         this.serializeEnchantments(meta, map)
         this.serializeItemFlags(meta, map)
         this.serializeUnbreakable(meta, map)
         this.serializeDamage(meta, map)
     }
 
-    private fun serializeEnchantments(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeEnchantments(meta: ItemMeta, map: MutableMap<String, Any?>) {
         val enchants = meta.enchants
         if (enchants.isNotEmpty()) {
             map["enchantments"] = enchants.entries.associate { (enchantment, level) ->
@@ -288,26 +289,26 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         }
     }
 
-    private fun serializeItemFlags(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeItemFlags(meta: ItemMeta, map: MutableMap<String, Any?>) {
         val flags = meta.itemFlags
         if (flags.isNotEmpty()) {
             map["itemFlags"] = flags.map { it.name }
         }
     }
 
-    private fun serializeUnbreakable(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeUnbreakable(meta: ItemMeta, map: MutableMap<String, Any?>) {
         if (meta.isUnbreakable) {
             map["unbreakable"] = true
         }
     }
 
-    private fun serializeDamage(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeDamage(meta: ItemMeta, map: MutableMap<String, Any?>) {
         if (meta is Damageable && meta.hasDamage()) {
             map["damage"] = meta.damage
         }
     }
 
-    private fun serializeVisualFields(meta: org.bukkit.inventory.meta.ItemMeta, map: MutableMap<String, Any?>) {
+    private fun serializeVisualFields(meta: ItemMeta, map: MutableMap<String, Any?>) {
         if (meta.hasCustomModelData()) {
             map["customModelData"] = meta.customModelData
         }
@@ -330,7 +331,7 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         return ItemStack(material, amount)
     }
 
-    private fun applyTextFields(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyTextFields(meta: ItemMeta, map: Map<*, *>) {
         val displayNameStr = map["displayName"]?.toString()
         if (displayNameStr != null) {
             meta.displayName(this.miniMessage.deserialize(displayNameStr))
@@ -342,14 +343,14 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         }
     }
 
-    private fun applyGameplayFields(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyGameplayFields(meta: ItemMeta, map: Map<*, *>) {
         this.applyEnchantments(meta, map)
         this.applyItemFlags(meta, map)
         this.applyUnbreakable(meta, map)
         this.applyDamage(meta, map)
     }
 
-    private fun applyEnchantments(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyEnchantments(meta: ItemMeta, map: Map<*, *>) {
         val enchantmentsRaw = map["enchantments"]
         if (enchantmentsRaw is Map<*, *>) {
             val registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
@@ -362,7 +363,7 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         }
     }
 
-    private fun applyItemFlags(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyItemFlags(meta: ItemMeta, map: Map<*, *>) {
         val flagsRaw = map["itemFlags"]
         if (flagsRaw is List<*>) {
             for (flagName in flagsRaw) {
@@ -372,20 +373,20 @@ object ItemStackSerializer : TypeSerializer<ItemStack> {
         }
     }
 
-    private fun applyUnbreakable(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyUnbreakable(meta: ItemMeta, map: Map<*, *>) {
         if (map["unbreakable"] == true || map["unbreakable"]?.toString().equals("true", ignoreCase = true)) {
             meta.isUnbreakable = true
         }
     }
 
-    private fun applyDamage(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyDamage(meta: ItemMeta, map: Map<*, *>) {
         val damage = (map["damage"] as? Number)?.toInt()
         if (damage != null && meta is Damageable) {
             meta.damage = damage
         }
     }
 
-    private fun applyVisualFields(meta: org.bukkit.inventory.meta.ItemMeta, map: Map<*, *>) {
+    private fun applyVisualFields(meta: ItemMeta, map: Map<*, *>) {
         val customModelData = (map["customModelData"] as? Number)?.toInt()
         if (customModelData != null) {
             meta.setCustomModelData(customModelData)

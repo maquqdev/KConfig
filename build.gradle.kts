@@ -6,7 +6,7 @@ plugins {
 }
 
 allprojects {
-    group = "club.skidware"
+    group = "com.github.maquqdev"
     version = "1.0.0"
 
     repositories {
