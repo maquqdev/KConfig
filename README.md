@@ -5,6 +5,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/maquqdev/KConfig/ci.yml?branch=main&style=flat-square)](https://github.com/maquqdev/KConfig/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 [![JitPack](https://jitpack.io/v/maquqdev/KConfig.svg?style=flat-square)](https://jitpack.io/#maquqdev/KConfig)
+[![KDoc](https://img.shields.io/badge/docs-KDoc-blue.svg?style=flat-square)](https://maquqdev.github.io/KConfig/)
 
 ---
 
