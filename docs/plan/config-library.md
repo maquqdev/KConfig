@@ -1,4 +1,4 @@
-# KConfig — YAML Config Library for Bukkit/Kotlin
+# KConfig - YAML Config Library for Bukkit/Kotlin
 
 ## Nazwa robocza: `kconfig` (albo co wolisz)
 
@@ -15,61 +15,61 @@
 
 ---
 
-## Architektura — moduły / pakiety
+## Architektura - moduły / pakiety
 
 ```
 kconfig/
 ├── annotation/
-│   ├── Comment.kt            — @Comment(vararg lines, placement)
-│   ├── CommentPlacement.kt   — enum ABOVE / INLINE
-│   ├── Range.kt              — @Range(min, max)
-│   ├── Pattern.kt            — @Pattern(regex, description)
-│   ├── Secret.kt             — @Secret
-│   ├── Env.kt                — @Env(variableName)
-│   ├── MigrateFrom.kt        — @MigrateFrom(vararg oldKeys)
-│   └── Transient.kt          — @Transient (pole pomijane w YAML)
+│   ├── Comment.kt            - @Comment(vararg lines, placement)
+│   ├── CommentPlacement.kt   - enum ABOVE / INLINE
+│   ├── Range.kt              - @Range(min, max)
+│   ├── Pattern.kt            - @Pattern(regex, description)
+│   ├── Secret.kt             - @Secret
+│   ├── Env.kt                - @Env(variableName)
+│   ├── MigrateFrom.kt        - @MigrateFrom(vararg oldKeys)
+│   └── Transient.kt          - @Transient (pole pomijane w YAML)
 │
 ├── serializer/
-│   ├── TypeSerializer.kt     — interfejs serialize/deserialize
-│   ├── SerializerRegistry.kt — mapa KClass → TypeSerializer
-│   ├── BuiltinSerializers.kt — String, Int, Long, Double, Float, Boolean, Enum, List, Map
+│   ├── TypeSerializer.kt     - interfejs serialize/deserialize
+│   ├── SerializerRegistry.kt - mapa KClass → TypeSerializer
+│   ├── BuiltinSerializers.kt - String, Int, Long, Double, Float, Boolean, Enum, List, Map
 │   └── bukkit/
 │       ├── ItemStackSerializer.kt
 │       ├── LocationSerializer.kt
 │       └── ... (opcjonalne)
 │
 ├── error/
-│   ├── ConfigError.kt        — sealed class (InvalidValue, UnknownType, UnknownKey, OutOfRange, PatternMismatch)
-│   ├── ConfigErrorCollector.kt — zbiera błędy zamiast rzucać wyjątki
-│   └── ConfigErrorFormatter.kt — formatuje ładny raport do loggera
+│   ├── ConfigError.kt        - sealed class (InvalidValue, UnknownType, UnknownKey, OutOfRange, PatternMismatch)
+│   ├── ConfigErrorCollector.kt - zbiera błędy zamiast rzucać wyjątki
+│   └── ConfigErrorFormatter.kt - formatuje ładny raport do loggera
 │
 ├── migration/
-│   ├── ConfigMigration.kt    — interfejs (fromVersion, toVersion, migrate(Map))
-│   └── MigrationRunner.kt    — wykrywa version, chain migracji v1→v2→v3
+│   ├── ConfigMigration.kt    - interfejs (fromVersion, toVersion, migrate(Map))
+│   └── MigrationRunner.kt    - wykrywa version, chain migracji v1→v2→v3
 │
 ├── writer/
-│   ├── YamlWriter.kt         — custom YAML writer (komentarze, kolejność pól)
-│   └── CommentExtractor.kt   — czyta @Comment z KParameter → Map<path, CommentData>
+│   ├── YamlWriter.kt         - custom YAML writer (komentarze, kolejność pól)
+│   └── CommentExtractor.kt   - czyta @Comment z KParameter → Map<path, CommentData>
 │
 ├── reader/
-│   ├── YamlReader.kt         — SnakeYAML parse → Map<String, Any?>
-│   ├── EnvOverrideResolver.kt — @Env overlay
-│   └── Deserializer.kt       — Map → data class (refleksja + walidacja)
+│   ├── YamlReader.kt         - SnakeYAML parse → Map<String, Any?>
+│   ├── EnvOverrideResolver.kt - @Env overlay
+│   └── Deserializer.kt       - Map → data class (refleksja + walidacja)
 │
 ├── watcher/
-│   └── FileWatcher.kt        — WatchService + debounce, opcjonalny
+│   └── FileWatcher.kt        - WatchService + debounce, opcjonalny
 │
-└── YamlConfigManager.kt      — główny entry point (load, save, reload, watch, registerSerializer, registerMigration)
+└── YamlConfigManager.kt      - główny entry point (load, save, reload, watch, registerSerializer, registerMigration)
 ```
 
 ---
 
 ## Fazy implementacji
 
-### FAZA 1 — Core (MVP)
+### FAZA 1 - Core (MVP)
 **Cel:** load/save dowolnej data classy z defaultami, zero adnotacji wymaganych.
 
-#### 1.1 — TypeSerializer + SerializerRegistry
+#### 1.1 - TypeSerializer + SerializerRegistry
 ```kotlin
 interface TypeSerializer<T> {
     fun serialize(value: T): Any    // T → prymityw / Map / List
@@ -84,7 +84,7 @@ class SerializerRegistry {
 }
 ```
 
-#### 1.2 — Deserializer (YAML Map → data class)
+#### 1.2 - Deserializer (YAML Map → data class)
 Algorytm:
 1. Weź `klass.primaryConstructor`
 2. Dla każdego `KParameter`:
@@ -100,17 +100,17 @@ Algorytm:
    - Data class → rekurencja `deserialize(klass, raw as Map)`
    - Registry hit → `serializer.deserialize(raw)`
    - Brak → error
-4. `constructor.callBy(args)` — Kotlin automatycznie uzupełnia defaulty
+4. `constructor.callBy(args)` - Kotlin automatycznie uzupełnia defaulty
 
 **Kluczowe:** `KType.arguments` do wyciągania generic typów List<T>, Map<K,V>.
 
-#### 1.3 — Serializer (data class → YAML Map)
-Odwrotność — rekurencja po `klass.memberProperties`:
+#### 1.3 - Serializer (data class → YAML Map)
+Odwrotność - rekurencja po `klass.memberProperties`:
 1. Dla każdego property z primaryConstructor:
    - `serializeValue(value)` → prymityw / Map / List
 2. Zwróć `LinkedHashMap` (zachowuje kolejność!)
 
-#### 1.4 — YamlReader (plik → Map)
+#### 1.4 - YamlReader (plik → Map)
 ```kotlin
 object YamlReader {
     fun read(file: File): Map<String, Any?> {
@@ -120,7 +120,7 @@ object YamlReader {
 }
 ```
 
-#### 1.5 — YamlWriter (Map → plik, BEZ komentarzy na razie)
+#### 1.5 - YamlWriter (Map → plik, BEZ komentarzy na razie)
 Custom writer bo SnakeYAML Dumper nie daje kontroli nad formatowaniem:
 - Rekurencyjny StringBuilder
 - `LinkedHashMap` → pola w kolejności z data classy
@@ -128,7 +128,7 @@ Custom writer bo SnakeYAML Dumper nie daje kontroli nad formatowaniem:
 - Listy → `- item` format
 - Nested map → indent +2
 
-#### 1.6 — YamlConfigManager
+#### 1.6 - YamlConfigManager
 ```kotlin
 object YamlConfigManager {
     val registry = SerializerRegistry()
@@ -140,7 +140,7 @@ object YamlConfigManager {
 ```
 
 #### Testy fazy 1:
-- Prosta data class z prymitywami — load/save roundtrip
+- Prosta data class z prymitywami - load/save roundtrip
 - Nested data classy 3 poziomy głęboko
 - List<String>, List<NestedDataClass>, Map<String, Int>
 - Brakujące klucze → defaulty
@@ -150,10 +150,10 @@ object YamlConfigManager {
 
 ---
 
-### FAZA 2 — Komentarze
+### FAZA 2 - Komentarze
 **Cel:** @Comment z ABOVE/INLINE, zachowanie w YAML.
 
-#### 2.1 — Adnotacje
+#### 2.1 - Adnotacje
 ```kotlin
 enum class CommentPlacement { ABOVE, INLINE }
 
@@ -165,7 +165,7 @@ annotation class Comment(
 )
 ```
 
-#### 2.2 — CommentExtractor
+#### 2.2 - CommentExtractor
 ```kotlin
 object CommentExtractor {
     // Rekurencyjnie zbiera komentarze z data classy
@@ -180,7 +180,7 @@ data class CommentData(
 )
 ```
 
-#### 2.3 — YamlWriter v2
+#### 2.3 - YamlWriter v2
 Rozszerz writer o:
 - Przed/po wartości wstaw komentarz
 - Wieloliniowy → zawsze ABOVE
@@ -197,10 +197,10 @@ Rozszerz writer o:
 
 ---
 
-### FAZA 3 — Error handling
+### FAZA 3 - Error handling
 **Cel:** inteligentny parser, zbiera wszystkie błędy, ładny raport.
 
-#### 3.1 — ConfigError sealed class
+#### 3.1 - ConfigError sealed class
 ```kotlin
 sealed class ConfigError(val path: String) {
     class InvalidValue(path, val raw: Any?, val expected: String, val hint: String?)
@@ -212,7 +212,7 @@ sealed class ConfigError(val path: String) {
 }
 ```
 
-#### 3.2 — ConfigErrorCollector
+#### 3.2 - ConfigErrorCollector
 ```kotlin
 class ConfigErrorCollector {
     private val errors = mutableListOf<ConfigError>()
@@ -223,9 +223,9 @@ class ConfigErrorCollector {
 }
 ```
 
-Wstrzykiwany do Deserializera — zamiast `throw`, dodaje error i zwraca null (fallback do default).
+Wstrzykiwany do Deserializera - zamiast `throw`, dodaje error i zwraca null (fallback do default).
 
-#### 3.3 — Levenshtein distance
+#### 3.3 - Levenshtein distance
 ```kotlin
 fun String.levenshtein(other: String): Int
 fun Collection<String>.closestMatch(input: String, maxDistance: Int = 3): String?
@@ -233,7 +233,7 @@ fun Collection<String>.closestMatch(input: String, maxDistance: Int = 3): String
 
 Użycie: nieznany klucz → "Did you mean X?", zły enum → "Did you mean TITLE?"
 
-#### 3.4 — ConfigErrorFormatter
+#### 3.4 - ConfigErrorFormatter
 - Grupuje błędy po typie
 - Formatuje z §-kolorami (Bukkit) LUB ANSI (stdout)
 - Pokazuje YAML context wokół błędu
@@ -248,10 +248,10 @@ Użycie: nieznany klucz → "Did you mean X?", zły enum → "Did you mean TITLE
 
 ---
 
-### FAZA 4 — Walidacja
+### FAZA 4 - Walidacja
 **Cel:** @Range, @Pattern, walidacja po deserializacji.
 
-#### 4.1 — Adnotacje
+#### 4.1 - Adnotacje
 ```kotlin
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -262,7 +262,7 @@ annotation class Range(val min: Double, val max: Double)
 annotation class Pattern(val regex: String, val description: String = "")
 ```
 
-#### 4.2 — ValidationPass
+#### 4.2 - ValidationPass
 Po deserializacji, przed zwróceniem obiektu:
 1. Iteruj po polach
 2. Sprawdź adnotacje na KParameter
@@ -279,14 +279,14 @@ Po deserializacji, przed zwróceniem obiektu:
 
 ---
 
-### FAZA 5 — Migracje
+### FAZA 5 - Migracje
 **Cel:** automatyczna migracja starych configów.
 
-#### 5.1 — Wersjonowanie
+#### 5.1 - Wersjonowanie
 Konwencja: pole `configVersion: Int = X` w głównej data classie.
 Biblioteka czyta tę wartość z raw YAML przed deserializacją.
 
-#### 5.2 — MigrationRunner
+#### 5.2 - MigrationRunner
 ```kotlin
 class MigrationRunner {
     private val migrations = mutableListOf<ConfigMigration>()
@@ -304,7 +304,7 @@ interface ConfigMigration {
 }
 ```
 
-#### 5.3 — @MigrateFrom (prosty rename)
+#### 5.3 - @MigrateFrom (prosty rename)
 ```kotlin
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -314,7 +314,7 @@ annotation class MigrateFrom(vararg val oldKeys: String)
 W deserializerze: jeśli `map[param.name]` == null, sprawdź `map[oldKey]` dla każdego oldKey.
 Jeśli znaleziono → użyj + zaloguj migrację.
 
-#### 5.4 — Backup
+#### 5.4 - Backup
 Przed migracją: `file.copyTo(File("${file.name}.v${oldVersion}.bak"))`
 
 #### Testy:
@@ -325,10 +325,10 @@ Przed migracją: `file.copyTo(File("${file.name}.v${oldVersion}.bak"))`
 
 ---
 
-### FAZA 6 — @Env + @Secret + @Transient
+### FAZA 6 - @Env + @Secret + @Transient
 **Cel:** produkcyjne security features.
 
-#### 6.1 — @Env
+#### 6.1 - @Env
 ```kotlin
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -342,7 +342,7 @@ System.getenv(variable) → jeśli istnieje, nadpisz pole
 Priorytet: ENV > YAML > default.
 **Nigdy** nie zapisuj env wartości do pliku przy save().
 
-#### 6.2 — @Secret (szczegółowo)
+#### 6.2 - @Secret (szczegółowo)
 
 ##### Adnotacja
 ```kotlin
@@ -385,7 +385,7 @@ data class LobbyConfig(
  */
 @JvmInline
 value class SecretString(private val value: String) {
-    /** Jawne pobranie — musisz świadomie wywołać */
+    /** Jawne pobranie - musisz świadomie wywołać */
     fun expose(): String = value
 
     /** toString ZAWSZE maskuje */
@@ -418,7 +418,7 @@ object SecretStringSerializer : TypeSerializer<SecretString> {
 
 ##### Gdzie maskowanie się odpala
 
-**1. Error formatter** — gdy config ma błąd w secret polu:
+**1. Error formatter** - gdy config ma błąd w secret polu:
 ```
   Fix these values:
 
@@ -455,7 +455,7 @@ Config reloaded! Changed fields:
   maxBet: 10000 → 50000
 ```
 
-**4. Save do YAML — BEZ maskowania:**
+**4. Save do YAML - BEZ maskowania:**
 Zapis do pliku ZAWSZE plaintext. Maskowanie to warstwa WYŚWIETLANIA, nie storage.
 Plik jest odpowiedzialnością admina (permissions, gitignore).
 
@@ -484,7 +484,7 @@ object SecretMasker {
 }
 ```
 
-##### SecretExtractor — zbiera secret metadata z klasy
+##### SecretExtractor - zbiera secret metadata z klasy
 ```kotlin
 object SecretExtractor {
     data class SecretFieldInfo(
@@ -535,13 +535,13 @@ object SecretExtractor {
 - Reload diff log → zamaskowany po obu stronach
 - Nested secret (np. `database.password`) → zamaskowany z pełną ścieżką
 
-#### 6.3 — @Transient
+#### 6.3 - @Transient
 - Pole pomijane przy serialize (nie trafia do YAML)
 - Przy deserialize → zawsze default
 
 ---
 
-### FAZA 7 — File Watcher (opcjonalny)
+### FAZA 7 - File Watcher (opcjonalny)
 **Cel:** auto-reload bez komendy.
 
 ```kotlin
@@ -564,7 +564,7 @@ class FileWatcher(
 
 ---
 
-### FAZA 8 — Bukkit Serializers (osobny moduł)
+### FAZA 8 - Bukkit Serializers (osobny moduł)
 **Cel:** `kconfig-bukkit` artifact z gotowymi serializerami.
 
 ```kotlin
@@ -588,20 +588,20 @@ Location → {world, x, y, z, pitch, yaw}
 
 ```
 kconfig/
-├── build.gradle.kts          — root, version catalog
+├── build.gradle.kts          - root, version catalog
 ├── settings.gradle.kts
 ├── kconfig-core/
-│   ├── build.gradle.kts      — kotlin, kotlin-reflect, snakeyaml, junit5
+│   ├── build.gradle.kts      - kotlin, kotlin-reflect, snakeyaml, junit5
 │   └── src/
 ├── kconfig-bukkit/
-│   ├── build.gradle.kts      — depends on kconfig-core + paper-api (compileOnly)
+│   ├── build.gradle.kts      - depends on kconfig-core + paper-api (compileOnly)
 │   └── src/
 └── kconfig-test/
-    ├── build.gradle.kts      — integration tests, example configs
+    ├── build.gradle.kts      - integration tests, example configs
     └── src/
 ```
 
-Dlaczego dwa moduły: `kconfig-core` jest CZYSTY — zero zależności na Bukkit.
+Dlaczego dwa moduły: `kconfig-core` jest CZYSTY - zero zależności na Bukkit.
 Można użyć w Velocity, standalone app, cokolwiek.
 `kconfig-bukkit` dodaje serializers specyficzne dla Bukkit API.
 
@@ -610,33 +610,33 @@ Można użyć w Velocity, standalone app, cokolwiek.
 ## Kolejność implementacji (priorytet)
 
 ```
-Tydzień 1:  FAZA 1 — Core (load/save/serialize/deserialize)
-Tydzień 2:  FAZA 3 — Error handling (bez tego debugging to koszmar)
-Tydzień 3:  FAZA 2 — Komentarze (UX dla adminów)
-Tydzień 4:  FAZA 4 — Walidacja (@Range, @Pattern)
-Tydzień 5:  FAZA 5 — Migracje
-Tydzień 6:  FAZA 6 — @Env, @Secret, @Transient
-Tydzień 7:  FAZA 8 — Bukkit serializers
-Tydzień 8:  FAZA 7 — File watcher (nice-to-have)
+Tydzień 1:  FAZA 1 - Core (load/save/serialize/deserialize)
+Tydzień 2:  FAZA 3 - Error handling (bez tego debugging to koszmar)
+Tydzień 3:  FAZA 2 - Komentarze (UX dla adminów)
+Tydzień 4:  FAZA 4 - Walidacja (@Range, @Pattern)
+Tydzień 5:  FAZA 5 - Migracje
+Tydzień 6:  FAZA 6 - @Env, @Secret, @Transient
+Tydzień 7:  FAZA 8 - Bukkit serializers
+Tydzień 8:  FAZA 7 - File watcher (nice-to-have)
 ```
 
-Uwaga: error handling (faza 3) PRZED komentarzami (faza 2) — bo bez dobrych
+Uwaga: error handling (faza 3) PRZED komentarzami (faza 2) - bo bez dobrych
 błędów będziesz tracił czas na debugowanie czemu config się nie ładuje.
 
 ---
 
 ## Edge case'y do ogarnięcia
 
-1. **Nullable fields:** `val something: String? = null` — trzeba obsłużyć `KType.isMarkedNullable`
-2. **Listy obiektów:** `List<SimpleLocation>` — deserializeValue musi wyciągnąć element type z KType.arguments
-3. **Mapy z enum key:** `Map<NoticeType, String>` — klucz mapy to enum, nie string
+1. **Nullable fields:** `val something: String? = null` - trzeba obsłużyć `KType.isMarkedNullable`
+2. **Listy obiektów:** `List<SimpleLocation>` - deserializeValue musi wyciągnąć element type z KType.arguments
+3. **Mapy z enum key:** `Map<NoticeType, String>` - klucz mapy to enum, nie string
 4. **Puste sekcje:** `economy: {}` w YAML → SnakeYAML zwraca pustą mapę, nie null
 5. **Yaml anchors/aliases:** SnakeYAML obsługuje, ale uważaj na cykliczne referencje
-6. **Multiline strings w YAML:** `|` i `>` block scalars — writer powinien je użyć dla długich stringów
-7. **Unicode:** MiniMessage z polskimi znakami — upewnij się że writer zapisuje UTF-8
+6. **Multiline strings w YAML:** `|` i `>` block scalars - writer powinien je użyć dla długich stringów
+7. **Unicode:** MiniMessage z polskimi znakami - upewnij się że writer zapisuje UTF-8
 8. **Thread safety:** Config reload na main thread (Bukkit), save może być async
-9. **Duże configi:** Twój LobbyMessages ma ~200 pól — refleksja musi być wydajna, cache KClass metadata
-10. **Default listy/mapy:** `List<String> = listOf(...)` — Kotlin je tworzy prawidłowo ale upewnij się że deepcopy przy save
+9. **Duże configi:** Twój LobbyMessages ma ~200 pól - refleksja musi być wydajna, cache KClass metadata
+10. **Default listy/mapy:** `List<String> = listOf(...)` - Kotlin je tworzy prawidłowo ale upewnij się że deepcopy przy save
 11. **camelCase → kebab-case:** Opcjonalnie: `serverId` w Kotlinie → `server-id` w YAML (dodaj flagę w load())
 
 ---
@@ -645,14 +645,14 @@ błędów będziesz tracił czas na debugowanie czemu config się nie ładuje.
 
 - **Cache refleksji:** Pierwsza deserializacja data classy jest wolna (KClass scanning).
   Zrób `ConcurrentHashMap<KClass<*>, ClassMetadata>` gdzie ClassMetadata trzyma:
-  constructor, parameters, adnotacje, typy — odczytane RAZ.
+  constructor, parameters, adnotacje, typy - odczytane RAZ.
 - **Nie ładuj przy każdym uzyciu:** Load raz, trzymaj referencję. Reload jawnie.
 - **Writer:** StringBuilder, nie konkatenacja stringów.
 - **SnakeYAML:** Użyj jednej instancji Yaml() z reusable DumperOptions.
 
 ---
 
-## API końcowe — jak to wygląda z perspektywy usera
+## API końcowe - jak to wygląda z perspektywy usera
 
 ```kotlin
 class MyPlugin : JavaPlugin() {
@@ -676,7 +676,7 @@ class MyPlugin : JavaPlugin() {
             }
         })
 
-        // Load — to jest CAŁY boilerplate
+        // Load - to jest CAŁY boilerplate
         config = YamlConfigManager.load<LobbyConfig>(dataFolder.resolve("config.yml"))
     }
 
@@ -686,7 +686,7 @@ class MyPlugin : JavaPlugin() {
 }
 ```
 
-I data classy — BEZ ŻADNYCH ZMIAN:
+I data classy - BEZ ŻADNYCH ZMIAN:
 
 ```kotlin
 data class LobbyConfig(

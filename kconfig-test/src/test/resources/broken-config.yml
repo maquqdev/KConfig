@@ -1,0 +1,24 @@
+configVersion: 2
+appName: broken-app
+allowedOrigins:
+  - https://example.com
+rateLimits:
+  login: 10
+apiKey: sk-broken-key
+database:
+  host: localhost
+  port: 99999
+  username: root
+  password: pass
+  url: jdbc:postgresql://localhost:5432/test
+server:
+  port: -1
+  hostname: INVALID_HOST_123!
+  bindAddress: 0.0.0.0
+logging:
+  level: TRACE
+cache:
+  enabled: maybe
+  ttlSeconds: 30
+  maxEntries: -500
+unknownTopLevel: surprise

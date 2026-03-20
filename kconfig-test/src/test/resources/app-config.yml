@@ -1,0 +1,27 @@
+configVersion: 2
+appName: my-web-service
+allowedOrigins:
+  - https://example.com
+  - https://app.example.com
+  - https://admin.example.com
+rateLimits:
+  login: 10
+  api: 100
+  health: 1000
+apiKey: sk-live-abcdef1234567890
+database:
+  host: db.production.internal
+  port: 5432
+  username: app_user
+  password: correct-horse-battery-staple
+  url: jdbc:postgresql://db.production.internal:5432/mydb
+server:
+  port: 8080
+  hostname: web-prod-01
+  bindAddress: 0.0.0.0
+logging:
+  level: INFO
+cache:
+  enabled: true
+  ttlSeconds: 300
+  maxEntries: 5000

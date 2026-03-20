@@ -1,0 +1,25 @@
+configVersion: 1
+appName: my-web-service
+allowedHosts:
+  - https://example.com
+  - https://legacy.example.com
+rateLimits:
+  login: 5
+  api: 50
+apiKey: sk-test-oldkey9876543210
+database:
+  host: db.staging.internal
+  port: 5432
+  username: staging_user
+  password: old-staging-password
+  url: jdbc:postgresql://db.staging.internal:5432/mydb
+server:
+  port: 9090
+  hostname: web-staging-01
+  bindAddress: 127.0.0.1
+logging:
+  level: DEBUG
+cache:
+  enabled: false
+  ttlSeconds: 60
+  maxEntries: 1000

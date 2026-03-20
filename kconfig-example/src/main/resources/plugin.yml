@@ -1,0 +1,7 @@
+name: DuelsExample
+version: '1.0.0'
+main: club.skidware.kconfig.example.DuelsPlugin
+api-version: '1.21'
+description: Example plugin demonstrating KConfig usage
+authors:
+  - maquq

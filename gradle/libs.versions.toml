@@ -1,0 +1,21 @@
+[versions]
+kotlin = "2.1.20"
+snakeyaml = "2.3"
+junit-jupiter = "5.11.4"
+strikt = "0.34.1"
+paper-api = "1.21.4-R0.1-SNAPSHOT"
+slf4j = "2.0.16"
+dokka = "2.0.0"
+
+[libraries]
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt" }
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
