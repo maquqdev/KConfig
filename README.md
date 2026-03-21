@@ -1,65 +1,132 @@
-# KConfig
+<div align="center">
 
-**Type-safe, annotation-driven YAML configuration for Kotlin.**
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1ABC9C,50:2980B9,100:6C3483&height=220&section=header&text=KConfig&fontSize=75&fontColor=ffffff&fontAlignY=35&desc=Type-safe%2C%20annotation-driven%20YAML%20configuration%20for%20Kotlin&descSize=18&descAlignY=55&animation=fadeIn" width="100%"/>
 
-[![Build](https://img.shields.io/github/actions/workflow/status/maquqdev/KConfig/ci.yml?branch=main&style=flat-square)](https://github.com/maquqdev/KConfig/actions)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![JitPack](https://jitpack.io/v/maquqdev/KConfig.svg?style=flat-square)](https://jitpack.io/#maquqdev/KConfig)
-[![KDoc](https://img.shields.io/badge/docs-KDoc-blue.svg?style=flat-square)](https://maquqdev.github.io/KConfig/)
+<br/>
 
----
+[![Build](https://img.shields.io/github/actions/workflow/status/maquqdev/KConfig/ci.yml?branch=main&style=flat&label=CI)](https://github.com/maquqdev/KConfig/actions)
+[![JitPack](https://jitpack.io/v/maquqdev/KConfig.svg)](https://jitpack.io/#maquqdev/KConfig)
+[![License](https://img.shields.io/badge/license-MIT-6C3483?style=flat)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.x-%237F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![JDK](https://img.shields.io/badge/JDK-21+-%23ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
+[![KDoc](https://img.shields.io/badge/docs-KDoc-%232980B9)](https://maquqdev.github.io/KConfig/)
 
-## Table of Contents
+**Map Kotlin data classes to YAML files with zero boilerplate. Validate, reload, migrate — automatically.**
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [ConfigRef (Live Config)](#configref-live-config)
-- [Annotations Reference](#annotations-reference)
-  - [@Comment](#comment)
-  - [@Range](#range)
-  - [@Pattern](#pattern)
-  - [@Secret](#secret)
-  - [@Env](#env)
-  - [@MigrateFrom](#migratefrom)
-  - [@Transient](#transient)
-- [SecretString](#secretstring)
-- [Custom Serializers](#custom-serializers)
-- [Migrations](#migrations)
-- [Error Handling](#error-handling)
-- [File Watching](#file-watching)
-- [Bukkit Integration](#bukkit-integration)
-- [Modules](#modules)
-- [License](#license)
+[📖 Wiki](https://github.com/maquqdev/KConfig/wiki) · [🐛 Issues](https://github.com/maquqdev/KConfig/issues) · [📦 JitPack](https://jitpack.io/#maquqdev/KConfig)
+
+</div>
 
 ---
 
-## Overview
+## ⚡ Why KConfig?
 
-KConfig maps Kotlin data classes to YAML files with zero boilerplate. Define your configuration schema as a data class with default values, annotate fields for validation, comments, secrets, and environment overrides, and let KConfig handle loading, saving, watching, and migration.
+<table>
+<tr>
+<td width="50%">
 
-**Why KConfig?**
+### 🚫 Manual YAML Handling
+```kotlin
+class MyPlugin : JavaPlugin() {
+    override fun onEnable() {
+        saveDefaultConfig()
+        val id = config.getString("serverId") ?: "default"
+        val max = config.getInt("maxPlayers", 200)
+        if (max < 1 || max > 1000) {
+            logger.warning("Invalid maxPlayers!")
+            // fallback? crash? ignore?
+        }
+        // No type safety, no validation,
+        // no reload, no comments preserved,
+        // stale references everywhere...
+    }
+}
+```
 
-- **Data class driven** -- your schema is a plain Kotlin data class. No DSL, no builder, no YAML parsing code.
-- **Automatic file creation** -- missing config files are generated from constructor defaults on first load.
-- **Live references** -- `ConfigRef<T>` provides reload-safe access. Every consumer sees the latest config without re-injection.
-- **Validation with fallback** -- `@Range` and `@Pattern` enforce constraints. Invalid values fall back to defaults instead of crashing.
-- **Secret masking** -- `@Secret` and `SecretString` prevent credential leakage through logs, `toString()`, and debug output.
-- **Environment overrides** -- `@Env` binds fields to environment variables with priority: ENV > YAML > default.
-- **Schema migrations** -- version-chained `ConfigMigration` with automatic backup before upgrade.
-- **File watching** -- WatchService-based auto-reload with debounce.
-- **Error reporting** -- all errors collected (no fail-fast), grouped by type, color-coded, with Levenshtein "did you mean?" suggestions.
-- **Extensible** -- `TypeSerializer<T>` interface for any custom type. Optional Bukkit integration module.
+</td>
+<td width="50%">
+
+### ✅ KConfig
+```kotlin
+data class ServerConfig(
+    @Comment("Server instance ID")
+    val serverId: String = "lobby-01",
+
+    @Comment("Max concurrent players")
+    @Range(min = 1.0, max = 1000.0)
+    val maxPlayers: Int = 200
+)
+
+fun main() {
+    val config = YamlConfigManager
+        .load<ServerConfig>(File("config.yml"))
+    // Type-safe, validated, comments preserved,
+    // auto-created from defaults. Done.
+}
+```
+
+> 🎯 Schema = data class. Validation, comments, reload — **all automatic.**
+
+</td>
+</tr>
+</table>
 
 ---
 
-## Installation
+## 🧩 Features
 
-### Gradle (Kotlin DSL)
+<table>
+<tr>
+<td>
+
+### 🏗️ Core
+![DataClass](https://img.shields.io/badge/data_class-driven_schema-1ABC9C?style=flat-square)
+![AutoCreate](https://img.shields.io/badge/auto-file_creation-2980B9?style=flat-square)
+![Comments](https://img.shields.io/badge/@Comment-preserved_in_YAML-27ae60?style=flat-square)
+![Validation](https://img.shields.io/badge/@Range_@Pattern-validation-6C3483?style=flat-square)
+
+</td>
+<td>
+
+### 🔒 Safety
+![ErrorReport](https://img.shields.io/badge/errors-collected_not_crashed-e74c3c?style=flat-square)
+![Secret](https://img.shields.io/badge/@Secret-credential_masking-e67e22?style=flat-square)
+![Fallback](https://img.shields.io/badge/invalid_values-fallback_to_defaults-f1c40f?style=flat-square)
+![DidYouMean](https://img.shields.io/badge/unknown_keys-did_you_mean%3F-e74c3c?style=flat-square)
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🔄 Live Config
+![ConfigRef](https://img.shields.io/badge/ConfigRef-reload_safe_access-7F52FF?style=flat-square)
+![FileWatch](https://img.shields.io/badge/WatchService-auto_reload-8e44ad?style=flat-square)
+![Callbacks](https://img.shields.io/badge/onChange-diff_based_listeners-9b59b6?style=flat-square)
+![Selecting](https://img.shields.io/badge/selecting-sub_section_delegates-6C3483?style=flat-square)
+
+</td>
+<td>
+
+### 🔌 Extensibility
+![Env](https://img.shields.io/badge/@Env-environment_overrides-16a085?style=flat-square)
+![Migration](https://img.shields.io/badge/migrations-version_chained-1abc9c?style=flat-square)
+![Serializers](https://img.shields.io/badge/TypeSerializer-custom_types-2ecc71?style=flat-square)
+![Bukkit](https://img.shields.io/badge/kconfig--bukkit-Location_Vector_Color-27ae60?style=flat-square)
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Add the dependency
 
 ```kotlin
+// build.gradle.kts
 repositories {
-    mavenCentral()
     maven("https://jitpack.io")
 }
 
@@ -71,33 +138,8 @@ dependencies {
 }
 ```
 
-### Gradle Version Catalog
-
-```toml
-# gradle/libs.versions.toml
-
-[versions]
-kconfig = "v1.0.0"
-
-[libraries]
-kconfig-core = { module = "com.github.maquqdev.KConfig:kconfig-core", version.ref = "kconfig" }
-kconfig-bukkit = { module = "com.github.maquqdev.KConfig:kconfig-bukkit", version.ref = "kconfig" }
-```
-
-```kotlin
-// build.gradle.kts
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
-}
-
-dependencies {
-    implementation(libs.kconfig.core)
-    implementation(libs.kconfig.bukkit) // optional
-}
-```
-
-### Maven
+<details>
+<summary>📋 Maven</summary>
 
 ```xml
 <repositories>
@@ -121,44 +163,56 @@ dependencies {
 </dependency>
 ```
 
-`kconfig-core` has no Bukkit dependency and works in any Kotlin/JVM project (JDK 21+).
+</details>
 
----
+<details>
+<summary>📋 Gradle Version Catalog</summary>
 
-## Quick Start
+```toml
+# gradle/libs.versions.toml
+[versions]
+kconfig = "v1.0.0"
 
-Define a data class with default values, then load it from a file:
+[libraries]
+kconfig-core = { module = "com.github.maquqdev.KConfig:kconfig-core", version.ref = "kconfig" }
+kconfig-bukkit = { module = "com.github.maquqdev.KConfig:kconfig-bukkit", version.ref = "kconfig" }
+```
 
 ```kotlin
-import club.skidware.kconfig.YamlConfigManager
-import club.skidware.kconfig.annotation.Comment
-import java.io.File
+dependencies {
+    implementation(libs.kconfig.core)
+    implementation(libs.kconfig.bukkit) // optional
+}
+```
 
+</details>
+
+### 2️⃣ Define your schema
+
+```kotlin
 data class ServerConfig(
     @Comment("The unique identifier for this server instance")
     val serverId: String = "lobby-01",
 
     @Comment("Maximum concurrent players")
+    @Range(min = 1.0, max = 1000.0)
     val maxPlayers: Int = 200,
 
     @Comment("Enable debug logging")
     val debug: Boolean = false
 )
-
-fun main() {
-    // Load from file -- creates it with defaults if it does not exist
-    val config = YamlConfigManager.load<ServerConfig>(File("config.yml"))
-
-    println(config.serverId)   // "lobby-01"
-    println(config.maxPlayers) // 200
-
-    // Save changes back
-    val updated = config.copy(maxPlayers = 500)
-    YamlConfigManager.save(File("config.yml"), updated)
-}
 ```
 
-The generated YAML:
+### 3️⃣ Load and use
+
+```kotlin
+val config = YamlConfigManager.load<ServerConfig>(File("config.yml"))
+
+println(config.serverId)   // "lobby-01"
+println(config.maxPlayers) // 200
+```
+
+> If the file doesn't exist, it's auto-created from defaults — with comments preserved:
 
 ```yaml
 # The unique identifier for this server instance
@@ -173,87 +227,39 @@ debug: false
 
 ---
 
-## ConfigRef (Live Config)
+## 📚 Key Concepts
 
-### The Problem
+<details>
+<summary><b>🔄 ConfigRef — Reload-Safe Live Config</b></summary>
 
-When a configuration is reloaded from disk, every class that captured the old instance holds a stale reference. You end up threading reload logic through your entire application, or resorting to mutable global state.
-
-### The Solution
-
-`ConfigRef<T>` is a reload-safe wrapper around a configuration instance. Any class holding a `ConfigRef` automatically sees the latest values after a reload -- no re-injection, no manual wiring.
-
-### Creating a ConfigRef
+Every class holding a `ConfigRef` automatically sees the latest values after a reload — no re-injection, no manual wiring.
 
 ```kotlin
-import club.skidware.kconfig.ConfigRef
-import club.skidware.kconfig.YamlConfigManager
-import java.io.File
-
 val config: ConfigRef<ServerConfig> = YamlConfigManager.ref<ServerConfig>(File("config.yml"))
-```
 
-This loads the config from disk immediately and returns a live reference. Pass this `ConfigRef` to any class that needs config access.
-
-### Access Patterns
-
-`ConfigRef` provides three ways to read the current config. All three resolve to the latest instance after any reload.
-
-```kotlin
 class GameManager(private val config: ConfigRef<ServerConfig>) {
 
-    // 1. Invoke operator -- concise, function-call style
-    fun getServerId(): String = config().serverId
+    // Three access patterns — all resolve to the latest instance
+    fun example() {
+        config().serverId              // invoke operator
+        config.current.maxPlayers      // property access
+    }
 
-    // 2. Property access -- explicit and readable
-    fun getMaxPlayers(): Int = config.current.maxPlayers
-
-    // 3. Kotlin delegate -- zero-boilerplate field access
+    // Kotlin delegate
     private val cfg: ServerConfig by config
-    fun isDebug(): Boolean = cfg.debug
 }
 ```
 
-### Selecting Sub-Sections
-
-Use `selecting {}` to create delegates that extract a specific section or derived value from the config. The selector runs on every access, so the result is always fresh.
+**Sub-section delegates** — extract specific sections that stay in sync:
 
 ```kotlin
-data class AppConfig(
-    val database: DatabaseConfig = DatabaseConfig(),
-    val messages: MessagesConfig = MessagesConfig(),
-    val limits: LimitsConfig = LimitsConfig()
-)
-
-data class DatabaseConfig(
-    val host: String = "localhost",
-    val port: Int = 5432
-)
-
-data class MessagesConfig(
-    val prefix: String = "[Server] ",
-    val welcome: String = "Welcome!"
-)
-
-data class LimitsConfig(
-    val maxConnections: Int = 100
-)
-
 class ConnectionManager(config: ConfigRef<AppConfig>) {
     private val db by config.selecting { it.database }
-    private val limits by config.selecting { it.limits }
-    private val connectionString by config.selecting { "${it.database.host}:${it.database.port}" }
-
-    fun connect() {
-        // db, limits, connectionString -- always in sync with the latest config
-        println("Connecting to $connectionString (max: ${limits.maxConnections})")
-    }
+    private val connStr by config.selecting { "${it.database.host}:${it.database.port}" }
 }
 ```
 
-### Change Callbacks
-
-Register listeners that fire when the config changes. Listeners receive both the old and new instances, enabling diff-based logic.
+**Change callbacks** with diff-based logic:
 
 ```kotlin
 config.onChange { old, new ->
@@ -263,449 +269,109 @@ config.onChange { old, new ->
 }
 ```
 
-Listeners are stored in a `CopyOnWriteArrayList` and are safe to register from any thread. They execute on the thread that triggered the reload.
-
-### Automatic File Watching
-
-Chain `withAutoReload()` to start a file watcher that reloads the config whenever the file changes on disk. Changes are debounced (default 500ms).
+**Auto-reload** from disk with debounce:
 
 ```kotlin
 val config = YamlConfigManager.ref<ServerConfig>(File("config.yml"))
-    .withAutoReload()
-    .onChange { old, new -> println("Config reloaded: ${new.serverId}") }
-```
+    .withAutoReload(debounceMs = 500)
+    .onChange { old, new -> println("Reloaded!") }
 
-To customize the debounce interval:
-
-```kotlin
-val config = YamlConfigManager.ref<ServerConfig>(File("config.yml"))
-    .withAutoReload(debounceMs = 1000)
-```
-
-Stop the watcher when you no longer need it:
-
-```kotlin
+// On shutdown:
 config.stopAutoReload()
 ```
 
-### Manual Reload
+</details>
 
-Trigger a reload programmatically (e.g., from a command):
-
-```kotlin
-fun onReloadCommand() {
-    val fresh = config.reload()
-    println("Reloaded. Server ID: ${fresh.serverId}")
-}
-```
-
-### Saving
-
-Write the current in-memory state back to disk:
-
-```kotlin
-config.save()
-```
-
-### Full Example: Plugin with Multiple Managers
-
-```kotlin
-import club.skidware.kconfig.ConfigRef
-import club.skidware.kconfig.YamlConfigManager
-import club.skidware.kconfig.annotation.Comment
-import club.skidware.kconfig.annotation.Range
-import club.skidware.kconfig.annotation.Secret
-import club.skidware.kconfig.serializer.SecretString
-import java.io.File
-
-// -- Configuration schema --
-
-data class PluginConfig(
-    @Comment("Server identity")
-    val server: ServerSection = ServerSection(),
-
-    @Comment("Game settings")
-    val game: GameSection = GameSection(),
-
-    @Comment("Database connection")
-    val database: DatabaseSection = DatabaseSection()
-)
-
-data class ServerSection(
-    val id: String = "lobby-01",
-
-    @Range(min = 1.0, max = 65535.0)
-    val port: Int = 25565
-)
-
-data class GameSection(
-    @Range(min = 1.0, max = 60.0)
-    val maxDurationMinutes: Int = 15,
-
-    val defaultMode: String = "solo"
-)
-
-data class DatabaseSection(
-    val host: String = "localhost",
-    val port: Int = 5432,
-
-    @Secret
-    val password: SecretString = SecretString("")
-)
-
-// -- Managers that consume ConfigRef --
-
-class GameManager(config: ConfigRef<PluginConfig>) {
-    private val game by config.selecting { it.game }
-
-    fun startGame() {
-        println("Starting ${game.defaultMode} game (max ${game.maxDurationMinutes} min)")
-    }
-}
-
-class DatabaseManager(config: ConfigRef<PluginConfig>) {
-    private val db by config.selecting { it.database }
-
-    fun connect() {
-        println("Connecting to ${db.host}:${db.port}")
-    }
-}
-
-// -- Initialization --
-
-fun main() {
-    val config = YamlConfigManager.ref<PluginConfig>(File("config.yml"))
-        .withAutoReload()
-        .onChange { old, new ->
-            if (old.game.maxDurationMinutes != new.game.maxDurationMinutes) {
-                println("Game duration changed, restarting active games")
-            }
-        }
-
-    val gameManager = GameManager(config)
-    val dbManager = DatabaseManager(config)
-
-    gameManager.startGame()
-    dbManager.connect()
-
-    // On shutdown:
-    config.stopAutoReload()
-}
-```
-
----
-
-## Annotations Reference
+<details>
+<summary><b>🏷️ Annotations Reference</b></summary>
 
 | Annotation | Target | Purpose |
-|---|---|---|
+|:-----------|:-------|:--------|
 | `@Comment` | Any field | Adds YAML comments (above or inline) |
 | `@Range` | Numeric fields | Enforces inclusive `[min, max]` bounds |
-| `@Pattern` | String fields | Validates against a regular expression |
+| `@Pattern` | String fields | Validates against a regex |
 | `@Secret` | Any field | Masks value in debug output and error reports |
 | `@Env` | Any field | Overrides value from an environment variable |
 | `@MigrateFrom` | Any field | Maps legacy YAML keys to the current field |
 | `@Transient` | Any field | Excludes field from YAML serialization |
 
----
-
-### @Comment
-
-Adds human-readable comments to the generated YAML. Supports multiple lines and two placement modes.
-
 ```kotlin
-import club.skidware.kconfig.annotation.Comment
-import club.skidware.kconfig.annotation.CommentPlacement
-
 data class AppConfig(
-    @Comment("The application display name")
+    @Comment("Display name")
     val name: String = "my-app",
 
     @Comment("Port to bind to", placement = CommentPlacement.INLINE)
+    @Range(min = 1.0, max = 65535.0)
     val port: Int = 8080,
 
-    @Comment("Database connection settings", "Restart required after changes")
-    val database: DatabaseConfig = DatabaseConfig()
-)
-```
-
-Generated YAML with `ABOVE` placement (default):
-
-```yaml
-# The application display name
-name: my-app
-```
-
-Generated YAML with `INLINE` placement:
-
-```yaml
-port: 8080 # Port to bind to
-```
-
-Multi-line comments render as consecutive comment lines:
-
-```yaml
-# Database connection settings
-# Restart required after changes
-database:
-  host: localhost
-```
-
----
-
-### @Range
-
-Constrains numeric fields to an inclusive `[min, max]` range. Works with `Int`, `Long`, `Float`, and `Double`. Out-of-range values fall back to the data class default and produce an `OutOfRange` error in the report.
-
-```kotlin
-import club.skidware.kconfig.annotation.Range
-
-data class GameConfig(
-    @Range(min = 1.0, max = 1000.0)
-    val maxPlayers: Int = 200,
-
-    @Range(min = 0.0, max = 1.0)
-    val loadFactor: Double = 0.75,
-
-    @Range(min = 1.0, max = 65535.0)
-    val port: Int = 8080
-)
-```
-
-If `config.yml` contains `maxPlayers: 5000`, KConfig loads the default value `200` and prints:
-
-```
-[OutOfRange]
-  maxPlayers: Value 5000 is out of range [1.0, 1000.0], fell back to 200
-```
-
----
-
-### @Pattern
-
-Validates string fields against a regular expression. Non-matching values fall back to the default. An optional `description` parameter provides a human-readable explanation in error messages.
-
-```kotlin
-import club.skidware.kconfig.annotation.Pattern
-
-data class NetworkConfig(
-    @Pattern(
-        regex = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$",
-        description = "Must be a valid IPv4 address"
-    )
+    @Pattern(regex = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", description = "IPv4 address")
     val bindAddress: String = "0.0.0.0",
-
-    @Pattern(regex = "^[a-z][a-z0-9-]*$")
-    val hostname: String = "app-server"
-)
-```
-
----
-
-### @Secret
-
-Marks fields as sensitive. Values are masked in debug output (`toDebugString`), error reports, and reload logs. The actual value is always written to YAML in plaintext -- masking is a display-layer concern.
-
-Three masking strategies are available:
-
-| Strategy | Input | Output | Use Case |
-|---|---|---|---|
-| `FULL` (default) | `superSecret123` | `********` | Passwords, tokens |
-| `PARTIAL` | `superSecret123` | `supe********` | Identifying which key is in use |
-| `EDGES` | `superSecret123` | `s*************3` | Quick visual verification |
-
-```kotlin
-import club.skidware.kconfig.annotation.Secret
-import club.skidware.kconfig.annotation.MaskStrategy
-
-data class CredentialsConfig(
-    @Secret
-    val password: String = "",
 
     @Secret(mask = MaskStrategy.PARTIAL, visibleChars = 4)
     val databaseUrl: String = "jdbc:postgresql://localhost/mydb",
 
-    @Secret(mask = MaskStrategy.EDGES)
-    val apiKey: String = ""
+    @Env("APP_TOKEN") @Secret
+    val token: SecretString = SecretString(""),
+
+    @MigrateFrom("server-name", "serverName")
+    val serverName: String = "default",
+
+    @Transient
+    val startedAt: Long = System.currentTimeMillis()
 )
 ```
 
-Use `toDebugString` to produce safe diagnostic output:
+</details>
+
+<details>
+<summary><b>🔐 Secrets & Environment Overrides</b></summary>
+
+### @Secret — Credential Masking
+
+Three masking strategies prevent leaks through logs, `toString()`, and debug output:
+
+| Strategy | Input | Output | Use Case |
+|:---------|:------|:-------|:---------|
+| `FULL` (default) | `superSecret123` | `********` | Passwords, tokens |
+| `PARTIAL` | `superSecret123` | `supe********` | Identifying which key |
+| `EDGES` | `superSecret123` | `s*************3` | Quick visual check |
+
+### SecretString — Zero-Allocation Safety
 
 ```kotlin
-val debug = YamlConfigManager.toDebugString(config)
-println(debug)
-// password: "********"
-// databaseUrl: "jdbc********"
-// apiKey: "s*************3"
+data class ApiConfig(
+    val apiKey: SecretString = SecretString("")
+)
+
+println(config.apiKey)           // ********
+println(config.apiKey.expose())  // actual value (intentional access)
 ```
 
----
+`SecretString` is an inline `value class` — zero runtime overhead.
 
-### @Env
+### @Env — Environment Variable Overrides
 
-Binds a field to an environment variable. When the variable is set, its value takes precedence over both the YAML file value and the data class default.
-
-**Priority order:** Environment variable > YAML file > data class default.
-
-Environment values are never written back to the YAML file.
+Priority: **ENV > YAML > default**. Env values are never written back to YAML.
 
 ```kotlin
-import club.skidware.kconfig.annotation.Env
-import club.skidware.kconfig.annotation.Secret
-
 data class DatabaseConfig(
-    @Env("DB_HOST")
-    val host: String = "localhost",
-
-    @Env("DB_PORT")
-    val port: Int = 5432,
-
-    @Env("DB_PASSWORD") @Secret
-    val password: String = ""
+    @Env("DB_HOST") val host: String = "localhost",
+    @Env("DB_PASSWORD") @Secret val password: String = ""
 )
 ```
 
 ```bash
-# At runtime:
-export DB_HOST=prod-db.internal
-export DB_PASSWORD=s3cr3t
-
-# config.yml says host: localhost, but the loaded instance will have host = "prod-db.internal"
+export DB_HOST=prod-db.internal  # overrides YAML and default
 ```
 
----
+</details>
 
-### @MigrateFrom
+<details>
+<summary><b>📦 Migrations</b></summary>
 
-Provides backward compatibility when renaming fields. During deserialization, if the current key is absent, the old keys are checked in the order provided.
+Version-chained schema upgrades with automatic backup before each migration.
 
 ```kotlin
-import club.skidware.kconfig.annotation.MigrateFrom
-
-data class ServerConfig(
-    @MigrateFrom("server-name", "serverName")
-    val name: String = "default",
-
-    @MigrateFrom("max-players")
-    val maxPlayers: Int = 100
-)
-```
-
-With this config on disk:
-
-```yaml
-server-name: production
-max-players: 500
-```
-
-KConfig loads `name = "production"` and `maxPlayers = 500`, then re-saves the file with the current key names:
-
-```yaml
-name: production
-maxPlayers: 500
-```
-
----
-
-### @Transient
-
-Excludes a field from YAML serialization and deserialization. The field always uses its data class default value. Use this for computed properties, internal timestamps, or runtime-only state.
-
-```kotlin
-import club.skidware.kconfig.annotation.Transient
-
-data class AppConfig(
-    val name: String = "my-app",
-
-    @Transient
-    val startedAt: Long = System.currentTimeMillis(),
-
-    @Transient
-    val isDebugBuild: Boolean = false
-)
-```
-
-The generated YAML will contain only `name` -- `startedAt` and `isDebugBuild` are omitted entirely.
-
----
-
-## SecretString
-
-`SecretString` is an inline value class that wraps a `String` and guarantees that `toString()` never exposes the plaintext. Use it for fields that must never leak through logging, string interpolation, or exception messages.
-
-```kotlin
-import club.skidware.kconfig.serializer.SecretString
-import club.skidware.kconfig.YamlConfigManager
-import java.io.File
-
-data class ApiConfig(
-    val endpoint: String = "https://api.example.com",
-    val apiKey: SecretString = SecretString("")
-)
-
-fun main() {
-    val config = YamlConfigManager.load<ApiConfig>(File("api.yml"))
-
-    println(config.apiKey)            // prints: ********
-    println("Key=${config.apiKey}")   // prints: Key=********
-    println(config.apiKey.expose())   // prints the actual value (intentional access)
-}
-```
-
-Because `SecretString` is an inline `value class`, it has zero runtime allocation overhead compared to a raw `String`.
-
-Fields of type `SecretString` are automatically detected and masked with `FULL` strategy even without a `@Secret` annotation.
-
----
-
-## Custom Serializers
-
-Implement the `TypeSerializer<T>` interface to add support for any type. A serializer must round-trip: calling `deserialize` on the output of `serialize` must produce an equivalent value.
-
-```kotlin
-import club.skidware.kconfig.serializer.TypeSerializer
-import club.skidware.kconfig.YamlConfigManager
-import java.time.Instant
-
-object InstantSerializer : TypeSerializer<Instant> {
-    override fun serialize(value: Instant): Any = value.toString()
-    override fun deserialize(raw: Any): Instant = Instant.parse(raw.toString())
-}
-```
-
-Register the serializer before loading any configs that use the type:
-
-```kotlin
-YamlConfigManager.registerSerializer(Instant::class, InstantSerializer)
-```
-
-Or use the reified overload:
-
-```kotlin
-YamlConfigManager.registerSerializer<Instant>(InstantSerializer)
-```
-
-**Built-in serializers** cover: `String`, `Int`, `Long`, `Double`, `Float`, `Boolean`, enums, `List`, `Map`, nested data classes, and `SecretString`.
-
----
-
-## Migrations
-
-Use `ConfigMigration` for version-chained schema upgrades. Each migration handles exactly one version increment. The `MigrationRunner` chains them automatically (v1 -> v2 -> v3) and creates a backup before migrating.
-
-### Defining Migrations
-
-```kotlin
-import club.skidware.kconfig.migration.ConfigMigration
-
-data class MyConfig(
-    val configVersion: Int = 3,
-    val name: String = "default",
-    val maxConnections: Int = 100,
-    val timeout: Int = 30
-)
-
 object MigrateV1ToV2 : ConfigMigration {
     override val fromVersion = 1
     override val toVersion = 2
@@ -726,178 +392,54 @@ object MigrateV2ToV3 : ConfigMigration {
         return map
     }
 }
-```
 
-### Registering and Running
-
-```kotlin
+// Register and load — chain runs automatically (v1 → v2 → v3)
 YamlConfigManager.registerMigration(MyConfig::class, MigrateV1ToV2)
 YamlConfigManager.registerMigration(MyConfig::class, MigrateV2ToV3)
-
 val config = YamlConfigManager.load<MyConfig>(File("config.yml"))
 ```
 
-### Backup Behavior
+Backups are created as `config.yml.v1.bak` before migration. Gaps in the chain throw `IllegalStateException`.
 
-Before any migration runs, a backup is created as `<filename>.v<version>.bak`. For example, migrating `config.yml` from version 1 produces `config.yml.v1.bak`. Backups are only created once per version -- subsequent loads do not overwrite existing backups.
+</details>
 
-### Migration Chain
+<details>
+<summary><b>🔧 Custom Serializers</b></summary>
 
-The target version is read from the `configVersion` field of the data class default. If the file's `configVersion` is lower than the target, the runner applies each migration step in sequence. If a gap exists in the chain (no migration for a required step), an `IllegalStateException` is thrown.
-
----
-
-## Error Handling
-
-KConfig collects all validation errors instead of failing on the first one. After loading, errors are grouped by type and printed with ANSI color-coded formatting to stderr.
-
-### Error Types
-
-| Type | Cause | Behavior |
-|---|---|---|
-| `InvalidValue` | Wrong type for a field (e.g., string where `Int` expected) | Falls back to default |
-| `UnknownType` | No serializer registered for a type | Falls back to default |
-| `UnknownKey` | Unrecognized key in YAML | Reported with Levenshtein "did you mean?" suggestion |
-| `OutOfRange` | Numeric value outside `@Range` bounds | Falls back to default |
-| `PatternMismatch` | String does not match `@Pattern` regex | Falls back to default |
-| `MissingRequired` | Required field (no default, non-nullable) is absent | Cannot fall back; error reported |
-
-### Fallback Behavior
-
-When a field fails validation, KConfig falls back to the data class default value and continues loading the rest of the configuration. The error report lists every issue found.
-
-### Example Error Output
-
-```
-3 config error(s) found in config.yml:
-
-  [InvalidValue]
-    server.port: Invalid value 'abc', expected Int
-
-  [UnknownKey]
-    databse: Unknown key 'databse' - did you mean 'database'?
-
-  [OutOfRange]
-    server.maxThreads: Value 9999 is out of range [1.0, 512.0], fell back to 16
-
-  1 field(s) fell back to default values.
-```
-
-### Configuring Output
-
-By default, errors are printed to `System.err`. Redirect to a different stream:
+Implement `TypeSerializer<T>` for any type:
 
 ```kotlin
-YamlConfigManager.setOutput(System.out)
-```
-
----
-
-## File Watching
-
-Monitor a config file for changes and auto-reload with debounce. KConfig uses the Java NIO `WatchService` to detect file modifications. Rapid successive writes are collapsed into a single reload.
-
-### Basic Usage
-
-```kotlin
-val watcher = YamlConfigManager.watch<ServerConfig>(File("config.yml")) { newConfig ->
-    println("Config reloaded: serverId=${newConfig.serverId}")
+object InstantSerializer : TypeSerializer<Instant> {
+    override fun serialize(value: Instant): Any = value.toString()
+    override fun deserialize(raw: Any): Instant = Instant.parse(raw.toString())
 }
+
+YamlConfigManager.registerSerializer<Instant>(InstantSerializer)
 ```
 
-### Stopping Watchers
+**Built-in serializers:** `String`, `Int`, `Long`, `Double`, `Float`, `Boolean`, enums, `List`, `Map`, nested data classes, `SecretString`.
+
+</details>
+
+<details>
+<summary><b>🎮 Bukkit Integration</b></summary>
+
+The optional `kconfig-bukkit` module adds serializers for common Bukkit types.
 
 ```kotlin
-// Stop a single watcher
-watcher.stop()
-
-// Stop all active watchers (call on shutdown)
-YamlConfigManager.stopAllWatchers()
-```
-
-### Debounce
-
-The default debounce interval is 500ms. When a file modification is detected, the reload callback is scheduled after the debounce period. If additional modifications occur within that window, they are collapsed into a single reload.
-
-### Error Safety
-
-If the reloaded file contains validation errors, they are reported and the previous valid configuration is preserved. Exceptions during reload are caught and printed to the configured output stream.
-
-### ConfigRef vs. watch
-
-For most use cases, prefer `ConfigRef.withAutoReload()` over the lower-level `watch` API. `ConfigRef` provides reload-safe references, change callbacks, and sub-section delegates in addition to file watching.
-
----
-
-## Bukkit Integration
-
-The `kconfig-bukkit` module provides serializers for common Bukkit types. Register them once during plugin initialization.
-
-### Setup
-
-```kotlin
-import club.skidware.kconfig.YamlConfigManager
-import club.skidware.kconfig.bukkit.BukkitSerializers
-
 override fun onEnable() {
     BukkitSerializers.registerAll(YamlConfigManager)
 }
 ```
 
-### Supported Types
-
-| Type | YAML Format                                 | Notes                               |
-|---|---------------------------------------------|-------------------------------------|
-| `Location` | `{world, x, y, z, pitch?, yaw?}`            | `pitch` and `yaw` omitted when zero |
-| `Vector` | `{x, y, z}`                                 | Double-precision coordinates        |
-| `Color` | `{red, green, blue}`                        | Integer values 0-255                |
-| `ItemStack` | {displayName, lore, custom-model-data etc.) | None -.-                            |
-
-### YAML Examples
-
-**Location:**
-
-```yaml
-spawn:
-  world: world
-  x: 100.5
-  y: 64.0
-  z: -200.3
-  pitch: 1.5
-  yaw: 90.0
-```
-
-**Vector:**
-
-```yaml
-velocity:
-  x: 1.0
-  y: 0.5
-  z: -1.0
-```
-
-**Color:**
-
-```yaml
-particleColor:
-  red: 255
-  green: 128
-  blue: 0
-```
-
-### Full Example
+| Type | YAML Format | Notes |
+|:-----|:------------|:------|
+| `Location` | `{world, x, y, z, pitch?, yaw?}` | pitch/yaw omitted when zero |
+| `Vector` | `{x, y, z}` | Double-precision |
+| `Color` | `{red, green, blue}` | 0-255 |
+| `ItemStack` | `{displayName, lore, custom-model-data...}` | Full serialization |
 
 ```kotlin
-import club.skidware.kconfig.YamlConfigManager
-import club.skidware.kconfig.ConfigRef
-import club.skidware.kconfig.bukkit.BukkitSerializers
-import club.skidware.kconfig.annotation.Comment
-import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.Color
-import org.bukkit.plugin.java.JavaPlugin
-import java.io.File
-
 data class ArenaConfig(
     @Comment("Lobby spawn point")
     val lobbySpawn: Location = Location(Bukkit.getWorld("world"), 0.0, 64.0, 0.0),
@@ -921,19 +463,88 @@ class ArenaPlugin : JavaPlugin() {
 }
 ```
 
+</details>
+
 ---
 
-## Modules
+## 🛡️ Error Handling
 
-KConfig is organized into three modules:
+KConfig collects **all** validation errors instead of failing on the first one. Invalid values fall back to defaults — your app never crashes from bad config.
+
+```
+3 config error(s) found in config.yml:
+
+  [InvalidValue]
+    server.port: Invalid value 'abc', expected Int
+
+  [UnknownKey]
+    databse: Unknown key 'databse' — did you mean 'database'?
+
+  [OutOfRange]
+    server.maxThreads: Value 9999 is out of range [1.0, 512.0], fell back to 16
+
+  1 field(s) fell back to default values.
+```
+
+<details>
+<summary>📋 All error types</summary>
+
+| Type | Cause | Behavior |
+|:-----|:------|:---------|
+| `InvalidValue` | Wrong type (e.g., string where `Int` expected) | Falls back to default |
+| `UnknownType` | No serializer registered | Falls back to default |
+| `UnknownKey` | Unrecognized key in YAML | Reported with "did you mean?" suggestion |
+| `OutOfRange` | Value outside `@Range` bounds | Falls back to default |
+| `PatternMismatch` | String doesn't match `@Pattern` regex | Falls back to default |
+| `MissingRequired` | Non-nullable field without default is absent | Error reported |
+
+</details>
+
+---
+
+## 📦 Modules
 
 | Module | Artifact | Description |
-|---|---|---|
-| `kconfig-core` | `club.skidware:kconfig-core` | Core library. YAML loading, saving, validation, annotations, migrations, file watching, `ConfigRef`. No external dependencies beyond SnakeYAML, kotlin-reflect, and SLF4J. |
-| `kconfig-bukkit` | `club.skidware:kconfig-bukkit` | Optional Bukkit integration. Serializers for `Location`, `Vector`, `Color`, and `ItemStack`. Depends on `kconfig-core` and the Bukkit API. |
+|:-------|:---------|:------------|
+| `kconfig-core` | `com.github.maquqdev.KConfig:kconfig-core` | Core library. YAML, validation, annotations, migrations, file watching, `ConfigRef`. No Bukkit dependency. |
+| `kconfig-bukkit` | `com.github.maquqdev.KConfig:kconfig-bukkit` | Optional Bukkit integration. Serializers for `Location`, `Vector`, `Color`, `ItemStack`. |
 
 ---
 
-## License
+## 📖 Documentation
 
-KConfig is licensed under the [MIT License](LICENSE).
+Full documentation is available on the **[Wiki](https://github.com/maquqdev/KConfig/wiki)**:
+
+| Section | Topics |
+|:--------|:-------|
+| **[Getting Started](https://github.com/maquqdev/KConfig/wiki/Getting-Started)** | Installation, first schema, loading & saving |
+| **[ConfigRef](https://github.com/maquqdev/KConfig/wiki/ConfigRef)** | Live references, delegates, `selecting {}`, change callbacks, auto-reload |
+| **[Annotations](https://github.com/maquqdev/KConfig/wiki/Annotations)** | `@Comment`, `@Range`, `@Pattern`, `@Secret`, `@Env`, `@MigrateFrom`, `@Transient` |
+| **[Secrets](https://github.com/maquqdev/KConfig/wiki/Secrets)** | `SecretString`, masking strategies, `@Env` overrides |
+| **[Migrations](https://github.com/maquqdev/KConfig/wiki/Migrations)** | `ConfigMigration`, version chains, backup behavior |
+| **[Custom Serializers](https://github.com/maquqdev/KConfig/wiki/Custom-Serializers)** | `TypeSerializer<T>`, built-in serializers |
+| **[Error Handling](https://github.com/maquqdev/KConfig/wiki/Error-Handling)** | Error types, fallback behavior, "did you mean?" |
+| **[File Watching](https://github.com/maquqdev/KConfig/wiki/File-Watching)** | WatchService, debounce, error safety |
+| **[Bukkit Integration](https://github.com/maquqdev/KConfig/wiki/Bukkit-Integration)** | `BukkitSerializers`, Location, Vector, Color, ItemStack |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. Please open an issue to discuss larger changes before submitting a PR.
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+## 📄 License
+
+[MIT](LICENSE)
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:6C3483,50:2980B9,100:1ABC9C&height=120&section=footer" width="100%"/>
+
+</div>
